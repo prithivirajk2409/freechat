@@ -4,7 +4,7 @@ import { motion } from "framer-motion";
 const Footer: React.FC = () => {
   return (
     <motion.footer
-      className="text-center py-1 text-sm text-gray-500 mt-100 px-20"
+      className="text-center py-1 text-sm text-gray-500 mt-100"
       initial={{ opacity: 0 }}
       animate={{ opacity: 1 }}
       transition={{ delay: 0.7 }}

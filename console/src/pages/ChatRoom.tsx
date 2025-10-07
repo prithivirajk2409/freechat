@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Send, Share2Icon, Users } from "lucide-react";
+import { Send, Share2Icon, Users, Menu, X } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import JoinRoom from "./JoinRoom";
 import Header from "./Header";
@@ -19,6 +19,7 @@ const ChatRoom: React.FC = () => {
   const [roomName, setRoomName] = useState("");
   const [copied, setCopied] = useState(false);
   const [input, setInput] = useState("");
+  const [showSidebar, setShowSidebar] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
 
@@ -26,13 +27,17 @@ const ChatRoom: React.FC = () => {
   const query = new URLSearchParams(location.search);
   const userName = query.get("userName");
   const roomId = query.get("roomId");
-  const BACKEND_URL = import.meta.env.MODE === "development"
-        ? "http://localhost:8080"
-        : "https://freechat-xfo8.onrender.com"
 
-  const FRONTEND_URL = import.meta.env.MODE === "development"
-        ? "http://localhost:5173"
-        : "https://freechat-console.onrender.com/"
+  const BACKEND_URL =
+    import.meta.env.MODE === "development"
+      ? "http://localhost:8080"
+      : "https://freechat-xfo8.onrender.com";
+
+  const FRONTEND_URL =
+    import.meta.env.MODE === "development"
+      ? "http://localhost:5173"
+      : "https://freechat-console.onrender.com/";
+
   const shareLink = `${FRONTEND_URL}#/chat?roomId=${roomId}`;
 
   const sendMessage = (e: React.FormEvent) => {
@@ -41,12 +46,12 @@ const ChatRoom: React.FC = () => {
 
     const newMsg: Message = {
       id: Date.now(),
-      sender: userName ?? '',
+      sender: userName ?? "",
       text: input.trim(),
       time: new Date().toLocaleTimeString([], {
         hour: "2-digit",
         minute: "2-digit",
-      })
+      }),
     };
 
     setMessages((prev) => [...prev, newMsg]);
@@ -83,11 +88,11 @@ const ChatRoom: React.FC = () => {
       .filter(
         (msg: any): msg is Message =>
           msg !== null &&
-          typeof msg === 'object' &&
-          typeof msg.id === 'number' &&
-          typeof msg.sender === 'string' &&
-          typeof msg.text === 'string' &&
-          typeof msg.time === 'string'
+          typeof msg === "object" &&
+          typeof msg.id === "number" &&
+          typeof msg.sender === "string" &&
+          typeof msg.text === "string" &&
+          typeof msg.time === "string"
       );
 
     setMessages(parsedMessages);
@@ -96,11 +101,6 @@ const ChatRoom: React.FC = () => {
   };
 
   useEffect(() => {
-    // if (!roomId || !userName) {
-    //   navigate("/");
-    //   return;
-    // }
-
     initialize();
   }, [roomId, userName]);
 
@@ -134,15 +134,13 @@ const ChatRoom: React.FC = () => {
     if (messagesContainerRef.current) {
       messagesContainerRef.current.scrollTo({
         top: messagesContainerRef.current.scrollHeight,
-        behavior: "smooth"
+        behavior: "smooth",
       });
     }
   }, [messages]);
 
   if (!userName) {
-    console.log(userName);
-    console.log(roomId);
-    return <JoinRoom roomId={roomId ?? ''} />;
+    return <JoinRoom roomId={roomId ?? ""} />;
   }
 
   return (
@@ -150,9 +148,9 @@ const ChatRoom: React.FC = () => {
       {/* Global Header */}
       <Header />
 
-      <div className="flex flex-1 min-h-[calc(100vh-120px)] overflow-hidden">
-        {/* Left: Fixed User List */}
-        <div className="w-200 bg-white border-r shadow-inner flex-shrink-0 flex flex-col">
+      <div className="flex flex-1 min-h-[calc(100vh-120px)] overflow-hidden relative">
+        {/* Sidebar (desktop) */}
+        <div className="hidden md:flex md:w-[240px] bg-white border-r shadow-inner flex-col">
           <motion.div
             className="px-6 py-6 border-b bg-gray-50"
             initial={{ y: -20, opacity: 0 }}
@@ -166,7 +164,10 @@ const ChatRoom: React.FC = () => {
           <div className="flex-1 overflow-y-auto px-4 py-4">
             <ul className="space-y-2">
               {users.map((user, idx) => (
-                <li key={idx} className="flex items-center gap-2 text-sm text-gray-700">
+                <li
+                  key={idx}
+                  className="flex items-center gap-2 text-sm text-gray-700"
+                >
                   <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-400 to-blue-400 flex items-center justify-center text-xs text-white font-bold">
                     {user.charAt(0).toUpperCase()}
                   </div>
@@ -178,9 +179,49 @@ const ChatRoom: React.FC = () => {
           <Footer />
         </div>
 
-        {/* Right: Chat Area */}
-        <div className="flex-1 flex flex-col ">
-          {/* Fixed Room Header */}
+        {/* Sidebar (mobile overlay) */}
+        <AnimatePresence>
+          {showSidebar && (
+            <motion.div
+              initial={{ x: -300 }}
+              animate={{ x: 0 }}
+              exit={{ x: -300 }}
+              transition={{ duration: 0.3 }}
+              className="absolute top-0 left-0 w-64 h-full bg-white z-50 shadow-lg flex flex-col md:hidden"
+            >
+              <div className="flex items-center justify-between px-4 py-3 border-b bg-gray-50">
+                <h2 className="text-sm font-semibold text-gray-700">
+                  People in this room
+                </h2>
+                <button
+                  className="p-2 hover:bg-gray-100 rounded"
+                  onClick={() => setShowSidebar(false)}
+                >
+                  <X className="w-5 h-5 text-gray-700" />
+                </button>
+              </div>
+              <div className="flex-1 overflow-y-auto px-4 py-4">
+                <ul className="space-y-2">
+                  {users.map((user, idx) => (
+                    <li
+                      key={idx}
+                      className="flex items-center gap-2 text-sm text-gray-700"
+                    >
+                      <div className="w-6 h-6 rounded-full bg-gradient-to-r from-purple-400 to-blue-400 flex items-center justify-center text-xs text-white font-bold">
+                        {user.charAt(0).toUpperCase()}
+                      </div>
+                      <span>{user}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </motion.div>
+          )}
+        </AnimatePresence>
+
+        {/* Chat Area */}
+        <div className="flex-1 flex flex-col">
+          {/* Chat Header */}
           <motion.header
             className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-md flex-shrink-0"
             initial={{ y: -20, opacity: 0 }}
@@ -188,11 +229,20 @@ const ChatRoom: React.FC = () => {
             transition={{ duration: 0.4 }}
           >
             <div className="flex items-center gap-3">
+              {/* Mobile Menu Toggle */}
+              <button
+                className="md:hidden p-2 rounded hover:bg-white/20"
+                onClick={() => setShowSidebar(true)}
+              >
+                <Menu className="w-5 h-5 text-white" />
+              </button>
+
               <div className="bg-white/20 p-2 rounded-full">
                 <Users className="w-5 h-5 text-white" />
               </div>
-              <h1 className="font-semibold text-lg">{roomName}</h1>
+              <h1 className="font-semibold text-lg truncate">{roomName}</h1>
             </div>
+
             <div className="relative flex items-center gap-4">
               <Share2Icon
                 className="w-5 h-5 cursor-pointer hover:text-gray-200"
@@ -206,12 +256,11 @@ const ChatRoom: React.FC = () => {
             </div>
           </motion.header>
 
-          {/* Scrollable Message List */}
+          {/* Message List */}
           <div
             ref={messagesContainerRef}
             className="flex-1 overflow-y-auto px-6 py-4 space-y-6 bg-[#e6f2ea]"
           >
-
             <div className="flex justify-center">
               <span className="text-xs bg-gray-200 text-gray-600 px-3 py-1 rounded-full">
                 Today
@@ -226,7 +275,11 @@ const ChatRoom: React.FC = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
-                  className={`flex ${msg.sender === userName ? "justify-end" : "justify-start"}`}
+                  className={`flex ${
+                    msg.sender === userName
+                      ? "justify-end"
+                      : "justify-start"
+                  }`}
                 >
                   {msg.sender !== userName ? (
                     <div className="flex items-start gap-2">
@@ -234,10 +287,14 @@ const ChatRoom: React.FC = () => {
                         {msg.sender.charAt(0).toUpperCase()}
                       </div>
                       <div>
-                        <p className="text-xs text-gray-600 font-medium mb-1">{msg.sender}</p>
+                        <p className="text-xs text-gray-600 font-medium mb-1">
+                          {msg.sender}
+                        </p>
                         <div className="max-w-xs md:max-w-md bg-white border border-gray-200 text-gray-800 rounded-2xl rounded-bl-none px-4 py-2 text-sm shadow-sm">
                           <p>{msg.text}</p>
-                          <p className="text-[10px] mt-1 text-gray-500">{msg.time}</p>
+                          <p className="text-[10px] mt-1 text-gray-500">
+                            {msg.time}
+                          </p>
                         </div>
                       </div>
                     </div>
@@ -245,7 +302,9 @@ const ChatRoom: React.FC = () => {
                     <div className="flex flex-col items-end">
                       <div className="max-w-xs md:max-w-md bg-gradient-to-r from-purple-500 to-blue-500 text-white rounded-2xl rounded-br-none px-4 py-2 text-sm shadow-md">
                         <p>{msg.text}</p>
-                        <p className="text-[10px] mt-1 text-white/70">{msg.time}</p>
+                        <p className="text-[10px] mt-1 text-white/70">
+                          {msg.time}
+                        </p>
                       </div>
                     </div>
                   )}
@@ -254,7 +313,7 @@ const ChatRoom: React.FC = () => {
             </AnimatePresence>
           </div>
 
-          {/* Fixed Input Area */}
+          {/* Input Box */}
           <motion.form
             onSubmit={sendMessage}
             className="px-4 py-3 flex items-center gap-2 border-t bg-white/90 backdrop-blur-md shadow-lg flex-shrink-0"
@@ -280,12 +339,7 @@ const ChatRoom: React.FC = () => {
           </motion.form>
         </div>
       </div>
-
-      {/* Global Footer */}
-
-
     </div>
-
   );
 };
 
