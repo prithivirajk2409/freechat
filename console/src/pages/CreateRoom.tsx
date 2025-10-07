@@ -6,13 +6,25 @@ import Header from "./Header";
 import Footer from "./Footer";
 
 
+
 const CreateRoom: React.FC = () => {
   const navigate = useNavigate();
   const [userName, setUserName] = useState("");
   const [showRoom, setShowRoom] = useState(false);
   const [roomName, setRoomName] = useState("");
   const [roomId, setRoomId] = useState("");
-  const shareLink = `http://localhost:5173/chat?roomId=${roomId}`;
+
+  const FRONTEND_URL = import.meta.env.MODE === "development"
+        ? "http://localhost:5173"
+        : "http://localhost:4173"
+  
+  const shareLink = `${FRONTEND_URL}/chat?roomId=${roomId}`;
+
+
+  const BACKEND_URL = import.meta.env.MODE === "development"
+        ? "http://localhost:8080"
+        : "https://freechat-xfo8.onrender.com"
+
 
   const handleCopy = () => {
     navigator.clipboard.writeText(shareLink);
@@ -30,7 +42,7 @@ const CreateRoom: React.FC = () => {
     e.preventDefault();
 
     try {
-      const res = await fetch("http://localhost:8087/app/chat/createRoom", {
+      const res = await fetch(`${BACKEND_URL}/app/chat/createRoom`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ userName, roomName }),

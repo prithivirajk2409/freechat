@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { useLocation } from "react-router-dom";
-import { Send, User, Share2Icon, Group, GroupIcon, LucideGroup, Users } from "lucide-react";
+import { Send, Share2Icon, Users } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import JoinRoom from "./JoinRoom";
 import Header from "./Header";
@@ -26,8 +26,14 @@ const ChatRoom: React.FC = () => {
   const query = new URLSearchParams(location.search);
   const userName = query.get("userName");
   const roomId = query.get("roomId");
+  const BACKEND_URL = import.meta.env.MODE === "development"
+        ? "http://localhost:8080"
+        : "https://freechat-xfo8.onrender.com"
 
-  const shareLink = `http://localhost:5173/chat?roomId=${roomId}`;
+  const FRONTEND_URL = import.meta.env.MODE === "development"
+        ? "http://localhost:5173"
+        : "http://localhost:4173"
+  const shareLink = `${FRONTEND_URL}/chat?roomId=${roomId}`;
 
   const sendMessage = (e: React.FormEvent) => {
     e.preventDefault();
@@ -59,7 +65,7 @@ const ChatRoom: React.FC = () => {
   };
 
   const initialize = async () => {
-    const res = await fetch(`http://localhost:8087/app/chat/room/${roomId}`, {
+    const res = await fetch(`${BACKEND_URL}/app/chat/room/${roomId}`, {
       method: "GET",
       headers: { "Content-Type": "application/json" },
     });
@@ -102,7 +108,7 @@ const ChatRoom: React.FC = () => {
     if (!roomId || !userName) return;
 
     const ws = new WebSocket(
-      `ws://localhost:8087/app/joinRoom?roomId=${roomId}&userName=${userName}`
+      `${BACKEND_URL}/app/joinRoom?roomId=${roomId}&userName=${userName}`
     );
 
     socketRef.current = ws;
