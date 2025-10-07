@@ -18,7 +18,7 @@ const CreateRoom: React.FC = () => {
         ? "http://localhost:5173"
         : "https://freechat-console.onrender.com/"
   
-  const shareLink = `${FRONTEND_URL}/chat?roomId=${roomId}`;
+  const shareLink = `${FRONTEND_URL}#/chat?roomId=${roomId}`;
 
 
   const BACKEND_URL = import.meta.env.MODE === "development"
