@@ -25,7 +25,7 @@ public class Room {
 	private Timestamp createdAt;
 
 	@JsonIgnore
-	private ConcurrentHashMap<Integer, WebSocketSession> activeMembers;
+	private ConcurrentHashMap<String, WebSocketSession> activeMembers;
 
 	@JsonIgnore
 	private BlockingQueue<SimpleEntry<String, WebSocketSession>> messageQueue;
@@ -113,11 +113,11 @@ public class Room {
 		this.createdAt = createdAt;
 	}
 
-	public ConcurrentHashMap<Integer, WebSocketSession> getActiveMembers() {
+	public ConcurrentHashMap<String, WebSocketSession> getActiveMembers() {
 		return activeMembers;
 	}
 
-	public void setActiveMembers(ConcurrentHashMap<Integer, WebSocketSession> activeMembers) {
+	public void setActiveMembers(ConcurrentHashMap<String, WebSocketSession> activeMembers) {
 		this.activeMembers = activeMembers;
 	}
 

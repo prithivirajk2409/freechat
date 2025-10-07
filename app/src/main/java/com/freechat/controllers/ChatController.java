@@ -37,7 +37,7 @@ public class ChatController {
 	@ResponseStatus(value = HttpStatus.OK)
 	public ResponseEntity<Map<String, Object>> createRoom(@RequestBody Map<String, Object> body) {
 		Map<String, Object> data = new HashMap<>();
-		User user = new User(body.get("userName").toString(), UserService.getUidseq().incrementAndGet());
+		User user = new User(body.get("userName").toString());
 		String roomName = body.get("roomName").toString();
 		data.put("roomDetails", roomService.createRoom(user, roomName));
 		return ResponseEntity.ok(data);

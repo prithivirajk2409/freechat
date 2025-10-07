@@ -35,12 +35,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 				.collect(Collectors.toMap(a -> a[0], a -> a[1]));
 
 		String userName = params.getOrDefault("userName", null);
-		String userIdStr = params.getOrDefault("userId", null);
 		String roomId = params.getOrDefault("roomId", null);
-
-		Integer userId = userIdStr == null ? UserService.getUidseq().incrementAndGet() : Integer.valueOf(userIdStr);
-
-		User user = new User(userName, userId);
+		User user = new User(userName);
 		roomService.addSessionToRoom(session, user, roomId);
 	}
 
@@ -53,6 +49,8 @@ public class ChatWebSocketHandler extends TextWebSocketHandler {
 	}
 
 	public void afterConnectionClosed(WebSocketSession session, CloseStatus closeStatus) throws Exception {
-
+		if (session.isOpen()) {
+			session.close();
+		}
 	}
 }

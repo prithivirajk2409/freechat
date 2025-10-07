@@ -33,7 +33,14 @@ public class RoomService {
 
 	public void addSessionToRoom(WebSocketSession session, User user, String roomId) throws Exception {
 		Room room = roomMap.get(roomId);
-		room.getActiveMembers().put(user.getUserId(), session);
+		if (room.getActiveMembers().contains(user.getUserName())) {
+			WebSocketSession oldSession = room.getActiveMembers().get(user.getUserName());
+			if (oldSession.isOpen()) {
+				oldSession.close();
+			}
+			room.getActiveMembers().remove(user.getUserName());
+		}
+		room.getActiveMembers().put(user.getUserName(), session);
 		room.getMembers().add(user.getUserName());
 		sessionToRoomMap.put(session, room);
 	}
