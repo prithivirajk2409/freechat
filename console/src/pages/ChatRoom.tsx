@@ -22,6 +22,7 @@ const ChatRoom: React.FC = () => {
   const [showSidebar, setShowSidebar] = useState(false);
   const socketRef = useRef<WebSocket | null>(null);
   const messagesContainerRef = useRef<HTMLDivElement | null>(null);
+  const bottomRef = useRef<HTMLDivElement | null>(null);
 
   const location = useLocation();
   const query = new URLSearchParams(location.search);
@@ -97,12 +98,12 @@ const ChatRoom: React.FC = () => {
 
     setMessages(parsedMessages);
     setRoomName(data.roomDetails.roomName);
-    setUsers(data.roomDetails.members || []);
+    setUsers([...new Set([...data.roomDetails.members, userName])]);
   };
 
-  useEffect(() => {
-    initialize();
-  }, [roomId, userName]);
+  // useEffect(() => {
+
+  // }, [roomId, userName]);
 
   useEffect(() => {
     if (!roomId || !userName) return;
@@ -124,6 +125,7 @@ const ChatRoom: React.FC = () => {
         console.warn("Invalid message received:", event.data);
       }
     };
+    initialize();
 
     return () => {
       ws.close();
@@ -132,6 +134,7 @@ const ChatRoom: React.FC = () => {
 
   useEffect(() => {
     if (messagesContainerRef.current) {
+      bottomRef.current?.scrollIntoView({ behavior: "smooth" });
       messagesContainerRef.current.scrollTo({
         top: messagesContainerRef.current.scrollHeight,
         behavior: "smooth",
@@ -144,10 +147,9 @@ const ChatRoom: React.FC = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-gradient-to-br from-[#f7f9fc] to-white">
+    <div className="h-screen flex flex-col bg-gradient-to-br from-[#f7f9fc] to-white overflow-hidden">
       {/* Global Header */}
       <Header />
-
       <div className="flex flex-1 min-h-[calc(100vh-120px)] overflow-hidden relative">
         {/* Sidebar (desktop) */}
         <div className="hidden md:flex md:w-[240px] bg-white border-r shadow-inner flex-col">
@@ -220,7 +222,7 @@ const ChatRoom: React.FC = () => {
         </AnimatePresence>
 
         {/* Chat Area */}
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col h-full overflow-hidden">
           {/* Chat Header */}
           <motion.header
             className="flex items-center justify-between px-6 py-4 bg-gradient-to-r from-purple-500 to-blue-500 text-white shadow-md flex-shrink-0"
@@ -263,7 +265,7 @@ const ChatRoom: React.FC = () => {
           >
             <div className="flex justify-center">
               <span className="text-xs bg-gray-200 text-gray-600 px-3 py-1 rounded-full">
-                Today
+                Welcome
               </span>
             </div>
 
@@ -275,11 +277,10 @@ const ChatRoom: React.FC = () => {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -10 }}
                   transition={{ duration: 0.3 }}
-                  className={`flex ${
-                    msg.sender === userName
-                      ? "justify-end"
-                      : "justify-start"
-                  }`}
+                  className={`flex ${msg.sender === userName
+                    ? "justify-end"
+                    : "justify-start"
+                    }`}
                 >
                   {msg.sender !== userName ? (
                     <div className="flex items-start gap-2">
@@ -311,6 +312,7 @@ const ChatRoom: React.FC = () => {
                 </motion.div>
               ))}
             </AnimatePresence>
+            <div ref={bottomRef} />
           </div>
 
           {/* Input Box */}
